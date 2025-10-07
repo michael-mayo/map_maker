@@ -52,6 +52,7 @@ class NoiseStack:
         self._seed=seed
         self._octaves=octaves
         self._size=size
+        self._debug=debug
         self._rng=np.random.default_rng(self._seed)
         seeds=self._rng.integers(0,high=2**16,size=octaves)
         offsets=(self._rng.uniform(low=-1000,high=1000,size=octaves*2)
@@ -65,13 +66,15 @@ class NoiseStack:
         self._noise=self._layers[0]._noise.copy()
         for i in range(1,octaves):
             self._noise+=self._layers[i]._noise
-        if debug:
-            for l in self._layers:
-                print(l)
 
     def __str__(self):
         """ Stringifier """
-        return json.dumps(self.stats(), indent=2)
+        result=""
+        if self._debug:
+            for l in self._layers:
+                result+=f"{str(l)}\n"
+        result+=json.dumps(self.stats(), indent=2)
+        return result
 
     def stats(self):
         """ All accessors in one method """
@@ -96,7 +99,7 @@ class NoiseStack:
         wm=(result * (2 ** 16 - 1)).astype(np.uint16)
         if self._size!=4096:
             wm=cv2.resize(wm,(4096,4096),interpolation=cv2.INTER_CUBIC)
-        offset=4096//2+1024//2
+        offset=4096//2-1024//2
         hm=wm[offset:(offset+1024),offset:(offset+1024)]
         hm=cv2.resize(hm,(4096,4096),interpolation=cv2.INTER_CUBIC)
         cv2.imwrite(f"wm_{self._seed}.png",wm)
@@ -104,6 +107,6 @@ class NoiseStack:
 
 
 # Tester code
-n=NoiseStack(seed=818,debug=False)
+n=NoiseStack(seed=838383,debug=True)
 print(n)
 n.to_cs2_png(min_z=0.0,max_z=1.0)
