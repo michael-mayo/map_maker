@@ -66,6 +66,7 @@ class NoiseStack:
         self._noise=self._layers[0]._noise.copy()
         for i in range(1,octaves):
             self._noise+=self._layers[i]._noise
+        self._noise_gradient_magnitude()
 
     def __str__(self):
         """ Stringifier """
@@ -84,7 +85,11 @@ class NoiseStack:
             "size": self._size,
             "noise_min": self._noise.min(),
             "noise_max": self._noise.max(),
-            "noise_mean": self._noise.mean()
+            "noise_mean": self._noise.mean(),
+            "magnitude_min":self._magnitude.min(),
+            "magnitude_max":self._magnitude.max(),
+            "angle_min":self._angle.min(),
+            "angle_max":self._angle.max(),
         }
 
     def to_cs2_png(self,
@@ -104,6 +109,22 @@ class NoiseStack:
         hm=cv2.resize(hm,(4096,4096),interpolation=cv2.INTER_CUBIC)
         cv2.imwrite(f"wm_{self._seed}.png",wm)
         cv2.imwrite(f"hm_{self._seed}.png",hm)
+
+    def _noise_gradient_magnitude(self):
+        """ Helper method to compute the gradient and magnitude of the noise """
+        noise=self._noise.astype(np.float32)
+        gx = cv2.Sobel(noise, cv2.CV_32F, 1, 0, ksize=3)
+        gy = cv2.Sobel(noise, cv2.CV_32F, 0, 1, ksize=3)
+        magnitude,angle=cv2.cartToPolar(gx, gy, angleInDegrees=True)
+        self._magnitude=magnitude.astype(np.float64)
+        self._angle = angle.astype(np.float64)
+        if self._debug:
+            mag_img = cv2.normalize(magnitude, None, 0, 255, cv2.NORM_MINMAX)
+            ang_img = cv2.normalize(angle, None, 0, 255, cv2.NORM_MINMAX)
+            mag_img = mag_img.astype(np.uint8)
+            ang_img = ang_img.astype(np.uint8)
+            cv2.imwrite("mag.png",mag_img)
+            cv2.imwrite("angle.png",ang_img)
 
 
 # Tester code
