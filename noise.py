@@ -128,6 +128,7 @@ class NoiseStack:
 
 
 # Tester code
-n=NoiseStack(seed=838383,debug=True)
-print(n)
-n.to_cs2_png(min_z=0.0,max_z=1.0)
+for seed in [42,1,999999]:
+    n=NoiseStack(seed=seed,debug=True)
+    print(n)
+    n.to_cs2_png(min_z=0.0,max_z=1.0)
