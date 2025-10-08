@@ -126,9 +126,22 @@ class NoiseStack:
             cv2.imwrite("mag.png",mag_img)
             cv2.imwrite("angle.png",ang_img)
 
+    def cs2_pass(self,central_size=256,max_range_m=120):
+        """ Returns true if the map passes a test related to flatness in the central area
+            of the map, mainly for cs2 playability; assumes that -1..1 corresponds to a 
+            height range of 4096 meters """
+        offset=4096//2-central_size//2
+        center=self._noise[offset:(offset+central_size),offset:(offset+central_size)]
+        percs=np.percentile(center.flatten(),[5,95])
+        range_m=4096*(percs[-1]-percs[0])/2.0
+        return range_m<=max_range_m
 
 # Tester code
-for seed in [42,1,999999]:
-    n=NoiseStack(seed=seed,debug=True)
+for seed in range(200):
+    n=NoiseStack(seed=seed,debug=False)
     print(n)
-    n.to_cs2_png(min_z=0.0,max_z=1.0)
+    if n.cs2_pass():
+        print(seed,"pass")
+        n.to_cs2_png(min_z=0.0,max_z=1.0)
+    else:
+        print(seed,"fail")
