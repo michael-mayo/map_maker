@@ -1,3 +1,15 @@
+"""
+Program to generate CS2 compatible maps that can be loaded into the map editor.
+
+Sample usage (two random maps with height scaled to 75%):
+ python noise.py --seeds 45,3 --max_z 0.75
+or with defaults (generates 3 maps with 100% height scaling):
+ python noise.py
+
+For each seed, a world map and height map will be created in the current directory.
+"""
+
+import argparse
 from typing import Tuple,List
 import json
 import numpy as np
@@ -42,13 +54,15 @@ class Noise:
         }
 
 class NoiseStack:
-    """ Immutable class representing a stack of noise layers """
+    """ Immutable class representing a stack of noise layers used to build the map;
+        includes some CS2-specific settings and post processing """
 
     def __init__(self,
                  seed:int=42,
                  octaves:int=8,
                  size:int=4096,
                  debug:bool=False):
+        """ Constructor """
         self._seed=seed
         self._octaves=octaves
         self._size=size
@@ -91,7 +105,8 @@ class NoiseStack:
     def to_cs2_png(self,
                min_z:float=0.0,
                max_z:float=1.0):
-        """ Save noise to a 16 bit png image """
+        """ Save noise 16 bit png world and height map images with height scaling;
+            if the map is too steep try reducing max_z """
         stats=self.stats()
         result=((self._noise-stats["noise_min"])
                 /(stats["noise_max"]-stats["noise_min"]))
@@ -123,7 +138,7 @@ class NoiseStack:
             cv2.imwrite("angle.png",ang_img)
 
     def _flatten_central_area(self,size=512,sigma=512//4,strength=1):
-        """ Applies a random median height bias to the central size X size area,
+        """ Applies a median height bias to the central size X size area,
             mainly for cs2 playability so we don't end up with a gradiant of 100 m """
         offset=4096//2-size//2
         central_area=self._noise[offset:(offset+size),offset:(offset+size)]
@@ -131,14 +146,28 @@ class NoiseStack:
         gaussian_1d=cv2.getGaussianKernel(ksize=4096,sigma=sigma)
         gaussian_2d=gaussian_1d@gaussian_1d.T
         gaussian_2d=cv2.normalize(gaussian_2d,None,0,strength,cv2.NORM_MINMAX)
-        if self._debug:
-            cv2.imwrite("gaussian2d.png",(gaussian_2d*255).astype(np.uint8))
         self._noise=((1-gaussian_2d)*self._noise)+(gaussian_2d*median_height)
 
 
 
-# Tester code
-for seed in [3]:
-    n=NoiseStack(seed=seed,debug=True)
-    print(n)
-    n.to_cs2_png(min_z=0.0,max_z=1.0)
+# launcher
+if __name__=="__main__":
+    parser=argparse.ArgumentParser()
+    parser.add_argument(
+        "--seeds",
+        type=lambda s: [int(x) for x in s.split(',')],
+        default="1,2,3",
+        help="Comma-separated list of positive integer seeds, e.g. 34,22,1919",
+    )
+    parser.add_argument(
+        "--max_z",
+        type=float,
+        default=1.0,
+        help="Height scaling, should be >0 and <=1, default 1"
+    )
+    args=parser.parse_args()
+    for seed in args.seeds:
+        print(f"generating map {seed}...")
+        n=NoiseStack(seed=seed,debug=False)
+        n.to_cs2_png(min_z=0.0,max_z=args.max_z)
+    print("done")
