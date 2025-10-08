@@ -2,9 +2,9 @@
 Program to generate CS2 compatible maps that can be loaded into the map editor.
 
 Sample usage (two random maps with height scaled to 75%):
- python noise.py --seeds 45,3 --max_z 0.75
+ python map.py --seeds 45,3 --max_z 0.75
 or with defaults (generates 3 maps with 100% height scaling):
- python noise.py
+ python map.py
 
 For each seed, a world map and height map will be created in the current directory.
 """
@@ -169,5 +169,5 @@ if __name__=="__main__":
     for seed in args.seeds:
         print(f"generating map {seed}...")
         n=NoiseStack(seed=seed,debug=False)
-        n.to_cs2_png(min_z=0.0,max_z=args.max_z)
+        n.to_cs2_png(min_z=0.0,max_z=np.clip(args.max_z,a_min=0,a_max=1))
     print("done")
