@@ -57,25 +57,21 @@ class NoiseStack:
         seeds=self._rng.integers(0,high=2**16,size=octaves)
         offsets=(self._rng.uniform(low=-1000,high=1000,size=octaves*2)
                  .reshape(octaves,2))
-        self._layers=[Noise(seed=int(seeds[i]),
-                            size=self._size,
-                            amplitude=1.0/(2**i),
-                            frequency=2**i,
-                            offset=tuple(offsets[i,:]))
-                      for i in range(octaves)]
-        self._noise=self._layers[0]._noise.copy()
+        layers=[Noise(seed=int(seeds[i]),
+                      size=self._size,
+                      amplitude=1.0/(2**i),
+                      frequency=2**i,
+                      offset=tuple(offsets[i,:]))
+                for i in range(octaves)]
+        self._noise=layers[0]._noise
         for i in range(1,octaves):
-            self._noise+=self._layers[i]._noise
+            self._noise+=layers[i]._noise
+        self._flatten_central_area()
         self._noise_gradient_magnitude()
 
     def __str__(self):
         """ Stringifier """
-        result=""
-        if self._debug:
-            for l in self._layers:
-                result+=f"{str(l)}\n"
-        result+=json.dumps(self.stats(), indent=2)
-        return result
+        return json.dumps(self.stats(), indent=2)
 
     def stats(self):
         """ All accessors in one method """
@@ -126,22 +122,23 @@ class NoiseStack:
             cv2.imwrite("mag.png",mag_img)
             cv2.imwrite("angle.png",ang_img)
 
-    def cs2_pass(self,central_size=256,max_range_m=120):
-        """ Returns true if the map passes a test related to flatness in the central area
-            of the map, mainly for cs2 playability; assumes that -1..1 corresponds to a 
-            height range of 4096 meters """
-        offset=4096//2-central_size//2
-        center=self._noise[offset:(offset+central_size),offset:(offset+central_size)]
-        percs=np.percentile(center.flatten(),[5,95])
-        range_m=4096*(percs[-1]-percs[0])/2.0
-        return range_m<=max_range_m
+    def _flatten_central_area(self,size=512,sigma=512//4,strength=1):
+        """ Applies a random median height bias to the central size X size area,
+            mainly for cs2 playability so we don't end up with a gradiant of 100 m """
+        offset=4096//2-size//2
+        central_area=self._noise[offset:(offset+size),offset:(offset+size)]
+        median_height=np.percentile(central_area.flatten(),50)
+        gaussian_1d=cv2.getGaussianKernel(ksize=4096,sigma=sigma)
+        gaussian_2d=gaussian_1d@gaussian_1d.T
+        gaussian_2d=cv2.normalize(gaussian_2d,None,0,strength,cv2.NORM_MINMAX)
+        if self._debug:
+            cv2.imwrite("gaussian2d.png",(gaussian_2d*255).astype(np.uint8))
+        self._noise=((1-gaussian_2d)*self._noise)+(gaussian_2d*median_height)
+
+
 
 # Tester code
-for seed in range(200):
-    n=NoiseStack(seed=seed,debug=False)
+for seed in [3]:
+    n=NoiseStack(seed=seed,debug=True)
     print(n)
-    if n.cs2_pass():
-        print(seed,"pass")
-        n.to_cs2_png(min_z=0.0,max_z=1.0)
-    else:
-        print(seed,"fail")
+    n.to_cs2_png(min_z=0.0,max_z=1.0)
