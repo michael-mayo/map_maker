@@ -163,7 +163,7 @@ class NoiseStack:
         scaler._noise-=scaler._noise.min()
         scaler._noise/=scaler._noise.max()
         scaler._noise=scaler._noise*(1-min_z)+min_z
-        self._noise=np.multiply(self._noise,scaler._noise)
+        self._noise=np.multiply(self._noise,scaler._noise**2)
 
 
 # launcher
