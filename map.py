@@ -149,10 +149,13 @@ class NoiseStack:
         gaussian_2d=cv2.normalize(gaussian_2d,None,0,strength,cv2.NORM_MINMAX)
         self._noise=((1-gaussian_2d)*self._noise)+(gaussian_2d*median_height)
 
+
+
     def _scale_heights_nonuniformly(self,min_z=0.2):
         """ Softens heights non uniformly across the map to reduce the appearance
             of repetition; does so by generating a random noise layer with low frequency
-            and range 0.2-1.0, which is then multiplied against the current map """
+            and range 0.2-1.0, which is then multiplied against the current map;
+            then subtracts min_z from the noise and abs it to to produce valley effects"""
         seed=self._rng.integers(0,high=2**16,size=1)[0]
         offsets=self._rng.uniform(low=-1000,high=1000,size=2)
         scaler=Noise(seed=int(seed),
@@ -164,6 +167,7 @@ class NoiseStack:
         scaler._noise/=scaler._noise.max()
         scaler._noise=scaler._noise*(1-min_z)+min_z
         self._noise=np.multiply(self._noise,scaler._noise**2)
+        self._noise=np.abs(self._noise)
 
 
 # launcher
