@@ -74,14 +74,15 @@ class NoiseStack:
         layers=[Noise(seed=int(seeds[i]),
                       size=self._size,
                       amplitude=1.0/(2**i),
-                      frequency=2**i,
+                      frequency=2**(i+2),
                       offset=tuple(offsets[i,:]))
                 for i in range(octaves)]
         self._noise=layers[0]._noise
         for i in range(1,octaves):
             self._noise+=layers[i]._noise
+        self._scale_heights_nonuniformly()
         self._flatten_central_area()
-        self._noise_gradient_magnitude()
+        self._noise_gradient_magnitude() # current gradient/magnitudes not used
 
     def __str__(self):
         """ Stringifier """
@@ -148,6 +149,21 @@ class NoiseStack:
         gaussian_2d=cv2.normalize(gaussian_2d,None,0,strength,cv2.NORM_MINMAX)
         self._noise=((1-gaussian_2d)*self._noise)+(gaussian_2d*median_height)
 
+    def _scale_heights_nonuniformly(self,min_z=0.2):
+        """ Softens heights non uniformly across the map to reduce the appearance
+            of repetition; does so by generating a random noise layer with low frequency
+            and range 0.2-1.0, which is then multiplied against the current map """
+        seed=self._rng.integers(0,high=2**16,size=1)[0]
+        offsets=self._rng.uniform(low=-1000,high=1000,size=2)
+        scaler=Noise(seed=int(seed),
+                      size=self._size,
+                      amplitude=1.0,
+                      frequency=2,
+                      offset=tuple(offsets))
+        scaler._noise-=scaler._noise.min()
+        scaler._noise/=scaler._noise.max()
+        scaler._noise=scaler._noise*(1-min_z)+min_z
+        self._noise=np.multiply(self._noise,scaler._noise)
 
 
 # launcher
