@@ -73,7 +73,7 @@ class NoiseStack:
                  .reshape(octaves,2))
         layers=[Noise(seed=int(seeds[i]),
                       size=self._size,
-                      amplitude=1.0/(2**i),
+                      amplitude=1.0/(2.3**i),
                       frequency=2**(i+2),
                       offset=tuple(offsets[i,:]))
                 for i in range(octaves)]
@@ -82,7 +82,7 @@ class NoiseStack:
             self._noise+=layers[i]._noise
         self._scale_heights_nonuniformly()
         self._flatten_central_area()
-        self._noise_gradient_magnitude() # current gradient/magnitudes not used
+        self._noise_gradient_magnitude() # currently gradient/magnitudes not used
 
     def __str__(self):
         """ Stringifier """
