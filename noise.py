@@ -50,6 +50,18 @@ class Noise:
         self._noise=(np.vectorize(f))(self._noise)
         return self
 
+    def flatten_center(self,size=512,sigma=512//4,strength=1):
+        """ Applies a median height bias to the central size X size area,
+            mainly for cs2 playability so we don't end up with a gradiant of 100 m """
+        offset=self._size//2-size//2
+        central_area=self._noise[offset:(offset+size),offset:(offset+size)]
+        median_height=np.percentile(central_area.flatten(),50)
+        gaussian_1d=cv2.getGaussianKernel(ksize=4096,sigma=sigma)
+        gaussian_2d=gaussian_1d@gaussian_1d.T
+        gaussian_2d=cv2.normalize(gaussian_2d,None,0,strength,cv2.NORM_MINMAX)
+        self._noise=((1-gaussian_2d)*self._noise)+(gaussian_2d*median_height)
+        return self
+
     def to_png(self,
                filename,
                centercrop_filename=None,
