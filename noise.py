@@ -7,7 +7,7 @@ class Noise:
     def __init__(self,
                  size:int=4096,
                  seed:int=42,
-                 octaves:int=6,
+                 octaves:int=8,
                  lacunarity:float=2.0,
                  persistence:float=0.5,
                  base_freq:float=1.0,
