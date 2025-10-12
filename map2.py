@@ -8,7 +8,7 @@ for seed in [1,2,3,4,5]:
     (Noise(seed=seed)
      .center(standardise=True)
      .flatten_center()
-     .ptf(lambda v: np.e**v + np.e**(-v/4))
+     .ptf(lambda v: np.e**(2*v) - np.e**(-2*v))
      .to_png(f"map{seed}_wm.png",f"map{seed}_hm.png"))
 
 
