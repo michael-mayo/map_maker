@@ -11,14 +11,15 @@ class Noise:
                  lacunarity:float=2.0,
                  persistence:float=0.5,
                  base_freq:float=1.0,
-                 center=1024):
+                 center:int=1024):
+        """ Constructor """
         self._size=size
         self._seed=seed
         self._octaves=octaves
         self._lacunarity=lacunarity
         self._persistence=persistence
         self._base_freq=base_freq
-        self._center=1024
+        self._center=center
         opensimplex.seed(seed)
         ix=np.linspace(0,1,num=size)
         iy=np.linspace(0,1,num=size)
@@ -28,9 +29,10 @@ class Noise:
             freq=base_freq*(lacunarity**j)
             amp=(persistence**j)
             ox,oy=rng.uniform(0,10000,size=2)
-            self._noise+=amp*opensimplex.noise2array(ix*freq+ox,ix*freq+oy)
+            self._noise+=amp*opensimplex.noise2array(ix*freq+ox,iy*freq+oy)
 
     def __str__(self)->str:
+        """ Stringifier """
         params=[f"size={self._size}"]
         params+=[f"seed={self._seed}"]
         params+=[f"octaves={self._octaves}"]
@@ -38,34 +40,40 @@ class Noise:
         params+=[f"persistence={self._persistence}"]
         params+=[f"base_freq={self._base_freq}"]
         params+=[f"center={self._center}"]
+        params+=[f"range={self._noise.min()},{self._noise.max()}"]
         return f"Noise({','.join(map(str,params))})"
 
     def center(self,standardise=False):
+        """ Center the noise to mean 0 and optionally scale it to std dev 1"""
         self._noise-=self._noise.mean()
         if standardise:
             self._noise/=self._noise.std()
         return self
 
     def ptf(self,f):
+        """ Apply a point function to each cell in the noise array. Function f
+            should take a single float param, return a single float, and not
+            be an already vectorized function """
         self._noise=(np.vectorize(f))(self._noise)
         return self
 
-    def flatten_center(self,size=512,sigma=512//4,strength=1):
-        """ Applies a median height bias to the central size X size area,
-            mainly for cs2 playability so we don't end up with a gradiant of 100 m """
-        offset=self._size//2-size//2
-        central_area=self._noise[offset:(offset+size),offset:(offset+size)]
-        median_height=np.percentile(central_area.flatten(),50)
-        gaussian_1d=cv2.getGaussianKernel(ksize=4096,sigma=sigma)
-        gaussian_2d=gaussian_1d@gaussian_1d.T
-        gaussian_2d=cv2.normalize(gaussian_2d,None,0,strength,cv2.NORM_MINMAX)
-        self._noise=((1-gaussian_2d)*self._noise)+(gaussian_2d*median_height)
+    def glf(self,f):
+        """ Apply a global function to each cell in the noise array.
+            The function f should take three float params being value,x,y, and
+            return a single value. The x,y coordinates are scaled 0..1 so the center
+            pixel will have coordinate (0.5,0.5). The function f should not be already vectorised """
+        ix=np.linspace(0,1,num=self._size)
+        iy=np.linspace(0,1,num=self._size)
+        xx,yy=np.meshgrid(ix,iy,indexing="xy")
+        self._noise = (np.vectorize(f))(self._noise,xx,yy)
         return self
 
     def to_png(self,
                filename,
                centercrop_filename=None,
                max_intensity=2**16-1):
+        """ Generate a 16 bit PNG image from the noise, and optionally a resized center crop
+            for the City Skylines 2 map editor """
         min,max=self._noise.min(),self._noise.max()
         img=max_intensity*(self._noise-min)/(max-min)
         img=img.astype(np.uint16)
