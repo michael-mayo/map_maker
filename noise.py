@@ -20,7 +20,8 @@ class Noise:
         self._persistence=persistence
         self._base_freq=base_freq
         self._center=center
-        opensimplex.seed(seed)
+        with np.errstate(over="ignore"):
+            opensimplex.seed(seed)
         ix=np.linspace(0,1,num=size)
         iy=np.linspace(0,1,num=size)
         rng = np.random.default_rng(seed)
@@ -42,6 +43,26 @@ class Noise:
         params+=[f"center={self._center}"]
         params+=[f"range={self._noise.min()},{self._noise.max()}"]
         return f"Noise({','.join(map(str,params))})"
+
+    def add(self,other):
+        self._noise+=other._noise
+        return self
+
+    def mlt_k(self,k:float):
+        self._noise*=k
+        return self
+
+    def mlt(self,other):
+        self._noise=np.multiply(self._noise,other._noise)
+        return self
+
+    def max(self,other):
+        self._noise=np.maximum(self._noise,other._noise)
+        return self
+
+    def smooth(self,ksize:int=11):
+        self._noise=cv2.GaussianBlur(self._noise,(ksize,ksize),0)
+        return self
 
     def center(self,standardise=False):
         """ Center the noise to mean 0 and optionally scale it to std dev 1"""
