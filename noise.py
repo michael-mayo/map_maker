@@ -44,6 +44,14 @@ class Noise:
         params+=[f"range={self._noise.min()},{self._noise.max()}"]
         return f"Noise({','.join(map(str,params))})"
 
+    def value(self,x,y):
+        return self._noise[x,y]
+
+
+    def add_k(self,k:float):
+        self._noise+=k
+        return self
+
     def add(self,other):
         self._noise+=other._noise
         return self
