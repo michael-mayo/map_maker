@@ -14,15 +14,13 @@ for it in range(5):
     seed=rng.integers(low=0,high=2**16)
     # create map
     map=Noise(seed=seed,size=4096,center=1024)
-    # translate the map heights so that the center pixel is height 0
+    # get the center pixel value
     x,y=map._size//2,map._size//2
-    map.add_k(-1*map.value(x,y))
-    # square the noise, which has the effect of inverting low regions
-    map.ptf(lambda v:v**2)
+    v0=map.value(x,y)
     # raise the center a little so its not the dead bottom
     def blend(v,x,y):
-        g=gauss(x,y,amp=0.8)
-        return g*0.1+(1-g)*v
+        g=gauss(x,y,amp=0.5)
+        return g*v0+(1-g)*v
     map.glf(blend)
     # done
     map.to_png(f"map{it}_wm.png",
