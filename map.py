@@ -17,7 +17,7 @@ for it in range(args.it):
     seed=rng.integers(low=0,high=2**16)
     map=Noise(seed=seed,size=4096,center=1024)
     map.center(standardise=True)
-    map.ptf(lambda v: np.exp(v))
+    map.ptf(lambda v: v+np.exp(v))
     x0,y0,amp,sig,k=rng.uniform(low=0,high=1,size=5)
     map.glf(lambda v,x,y:
             v+gauss(x,y,
