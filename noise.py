@@ -68,13 +68,13 @@ class Noise:
         self._noise=np.maximum(self._noise,other._noise)
         return self
 
-    def smooth(self,ksize:int=11):
-        self._noise=cv2.GaussianBlur(self._noise,(ksize,ksize),0)
-        return self
-
-    def center(self,standardise=False):
+    def center(self,method:str="mean",standardise:bool=False):
         """ Center the noise to mean 0 and optionally scale it to std dev 1"""
-        self._noise-=self._noise.mean()
+        if method=="mean":
+            self._noise-=self._noise.mean()
+        elif method=="center_pixel":
+            v=self._noise[self._size//2,self._size//2]
+            self._noise-=v
         if standardise:
             self._noise/=self._noise.std()
         return self
