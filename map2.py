@@ -15,12 +15,13 @@ for it in range(args.it):
     map=Noise(seed=seed,
               size=4096,
               center=1024,
-              octaves=9,
-              base_freq=rng.uniform()+1)
+              octaves=8,
+              base_freq=rng.uniform()*1.5+0.5)
     map.center(method="mean", standardise=True)
     map.center(method="center_pixel",standardise=False)
-    map.ptf(lambda v: np.exp(v) if v>=0 else np.exp(3.5*v))
+    map.ptf(lambda v: v**3 if v>=0 else v)
     map.to_png(f"map{it}_wm.png",
+
                f"map{it}_hm.png") # done
     print(map)
 
