@@ -12,11 +12,18 @@ To run the program using the following command:
 ```
 python map.py --seed [SEED] --it [IT]
 ```
-Replace SEED with your random number seed and IT with the number of maps you want.
-The program will generate pairs of PNG images, `map[n]_wm.png` and `map[n]_hm.png`
+Replace SEED with your random number seed and IT with the number of maps (iterations) you want.
+The program will generate pairs of PNG images, `map[it]_wm.png` and `map[it]_hm.png`
 being the world and height maps respectively. These files can be copied to your CS2 heightmaps
 folder (`C:\Users\USERNAME\AppData\LocalLow\Colossal Order\Cities Skylines II\Heightmaps` on my PC)
 and then imported in the map editor.
+
+# Sample maps
+
+| seed | it | world                            | height                           | editor |
+|------|----|----------------------------------|----------------------------------|--------|
+| 619  | 1  | ![map][readme-images/map1_wm.png | ![map][readme-images/map1_wm.png | editor |
+| 619  | 4  | ![map][readme-images/map4_wm.png | ![map][readme-images/map4_wm.png | editor |
 
 
 
