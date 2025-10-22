@@ -20,10 +20,10 @@ and then imported in the map editor.
 
 # Sample maps
 
-| seed | it | world                              | height                          | editor |
-|------|----|------------------------------------|---------------------------------|--------|
-| 619  | 1  | ![map][./readme-images/1_wm.png | ![map][./readme-images/1_wm.png | editor |
-| 619  | 4  | ![map][./readme-images/4_wm.png   | ![map][./readme-images/4_wm.png | editor |
+| seed | it | world                            | height                           | editor |
+|------|----|----------------------------------|----------------------------------|--------|
+| 619  | 1  | ![map](./readme-images/1_wm.png) | ![map](./readme-images/1_wm.png) | editor |
+| 619  | 4  | ![map](./readme-images/4_wm.png) | ![map](./readme-images/4_wm.png) | editor |
 
 
 
