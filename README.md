@@ -18,6 +18,16 @@ being the world and height maps respectively. These files can be copied to your 
 folder (`C:\Users\USERNAME\AppData\LocalLow\Colossal Order\Cities Skylines II\Heightmaps` on my PC)
 and then imported in the map editor.
 
+Notes:
+* The map generator will try and create mountain/hill areas, a flat area intersecting the starting square,
+  and a sea level drop off.
+* Sometimes the playable area is completely flat with distant mountains -- either keep this if its what you want
+  or generate another map.
+* Sometimes the playable area does not have enough flat space -- either move the starting square or scale the height
+  of the map in the map editor if this happens.
+* Generally its a good idea to generate 30+ maps at a time and pick the interesting ones to look at in the map editor.
+
+
 ## Sample maps
 
 | seed | it | world                            | height                           |
@@ -29,6 +39,7 @@ and then imported in the map editor.
 ![map](./readme-images/1_map_editor.png)
 ### Map 4 after loading into the map editor:
 ![map](./readme-images/4_map_editor.png)
-
+### Map 1 after loading into the map editor and adding water and a few highways:
+![map](./readme-images/1_map_editor_water.png)
 
 
