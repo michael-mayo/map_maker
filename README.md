@@ -40,6 +40,6 @@ Notes:
 ### Map 4 after loading into the map editor:
 ![map](./readme-images/4_map_editor.png)
 ### Map 1 after loading into the map editor and adding water and a few highways:
-![map](./readme-images/1_map_editor_water.png)
+![map](./readme-images/4_map_editor_water.png)
 
 
