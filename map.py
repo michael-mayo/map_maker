@@ -55,17 +55,19 @@ for it in range(args.it):
         for i in range(args.num_drops):
             sim_drop(i)
             if (i+1)%100==0:
-                print(".",end="")
+                print(".",end="",flush=True)
         if args.num_drops>=100:
             print()
         water-=water.min()
         water/=water.max()
         water=water**0.5
+        water=(water * (2 ** 16 - 1)).astype(np.uint16)
+        #water=cv2.GaussianBlur(water,(11,11),0)
         print("...drop sims complete")
     print("saving map files...")
     map.to_png(f"map{it}_wm.png",f"map{it}_hm.png")
     if args.num_drops > 0:
-        cv2.imwrite(f"map{it}_water.png",(water*(2**16-1)).astype(np.uint16))
+        cv2.imwrite(f"map{it}_water.png",water)
 
 
 
