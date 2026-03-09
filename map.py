@@ -67,10 +67,12 @@ for it in range(args.it):
         water=cv2.dilate(water,
                          cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)),
                          iterations=1)
-        water=cv2.GaussianBlur(water,(7,7),0)
+        water=np.power(water,0.5)
+        for _ in range(4):
+            water=cv2.GaussianBlur(water,(17,17),0)
         map_max,map_min=map._noise.max(),map._noise.min()
         map_range=map_max-map_min
-        map._noise-=(0.08*map_range*water.astype(np.float32)/water.max())
+        map._noise-=(0.04*map_range*water.astype(np.float32)/water.max())
         #map._noise=cv2.GaussianBlur(map._noise,(3,3),0)
         print("...drop sims complete")
     print("saving map files...")
