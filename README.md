@@ -10,11 +10,19 @@ To set everything up:
 
 To run the program using the following command:
 ```
-python map.py --seed [SEED] --it [IT]
+python map.py --seed [SEED] --it [IT] --drops [DROPS]
 ```
 Replace SEED with your random number seed and IT with the number of maps (iterations) you want.
+DROPS is the number of water drop erosion iterations you want to run; 
+this is slow so it defaults to 0, but 100000 or more is a good value to produce
+things that vaguely resemble eroded map regions where water might run.
+
 The program will generate pairs of PNG images, `map[it]_wm.png` and `map[it]_hm.png`
-being the world and height maps respectively. These files can be copied to your CS2 heightmaps
+being the world and height maps respectively. 
+If drops is enabled, it also produces `_map[it]_water.png` which is primarily for debugging
+and not used anywhere else.
+
+These files can be copied to your CS2 heightmaps
 folder (`C:\Users\USERNAME\AppData\LocalLow\Colossal Order\Cities Skylines II\Heightmaps` on my PC)
 and then imported in the map editor.
 
