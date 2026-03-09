@@ -29,9 +29,11 @@ def sim_drop(i):
         nhoodv = [map.value(*n)
                   if n[0] >= 0 and n[0] < 4096 and n[1] >= 0 and n[1] < 4096 else np.nan
                   for n in nhood]
-        i = np.argmin(nhoodv)
-        if nhoodv[i] is not None and nhoodv[i] < cv:
-            c = nhood[i]
+        nhoodv_sorted_idx=np.argsort(nhoodv)
+        lowest_idx=nhoodv_sorted_idx[0]
+        candidate_idx=nhoodv_sorted_idx[np.random.choice([0,1,2])]
+        if nhoodv[candidate_idx] is not None and nhoodv[lowest_idx] < cv:
+            c = nhood[candidate_idx]
             water[*c] += 0.01
         else:
             break
@@ -61,15 +63,15 @@ for it in range(args.it):
             print()
         water-=water.min()
         water/=water.max()
-        water=water**0.5
         water=(water * (2 ** 16 - 1)).astype(np.uint16)
         water=cv2.dilate(water,
-                         cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)),
+                         cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)),
                          iterations=1)
-        water=cv2.GaussianBlur(water,(11,11),0)
+        water=cv2.GaussianBlur(water,(7,7),0)
         map_max,map_min=map._noise.max(),map._noise.min()
         map_range=map_max-map_min
-        map._noise-=(0.01*map_range*water.astype(np.float32)/water.max())
+        map._noise-=(0.08*map_range*water.astype(np.float32)/water.max())
+        #map._noise=cv2.GaussianBlur(map._noise,(3,3),0)
         print("...drop sims complete")
     print("saving map files...")
     map.to_png(f"map{it}_wm.png",f"map{it}_hm.png")
