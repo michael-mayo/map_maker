@@ -6,7 +6,7 @@ import cv2
 from typing import List,Tuple
 
 def create_terrain(rng:np.random.Generator)->np.ndarray:
-    size=512
+    size=1024
     terrain=np.zeros((size,size))
     bases=rng.integers(2**16,size=3,dtype=np.uint16)
     for y in range(size):
@@ -15,9 +15,11 @@ def create_terrain(rng:np.random.Generator)->np.ndarray:
             ny=y/size
             wx=pnoise2(nx*3,ny*3,octaves=6,base=bases[0])
             wy=pnoise2(nx*3+5,ny*3+5,octaves=6,base=bases[1])
-            nx2=nx+0.8*wx
-            ny2=ny+0.8*wy
-            elevation=pnoise2(nx2*8,ny2*8,octaves=6,base=bases[2])
+            nx2=nx+0.1*wx
+            ny2=ny+0.1*wy
+            #elevation=pnoise2(nx2*8,ny2*8,octaves=6,base=bases[2])
+            elevation=pnoise2(nx2*3,ny2*3,octaves=6,base=bases[2])
+            #elevation=pnoise2(nx,ny,octaves=6,base=bases[2])
             terrain[y,x]=elevation
     #terrain=gaussian_filter(terrain,4,mode="wrap")
     return terrain
