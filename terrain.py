@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from noise import pnoise2
 from scipy.ndimage import gaussian_filter
 import cv2
+from typing import List,Tuple
 
 def create_terrain(rng:np.random.Generator)->np.ndarray:
     size=512
@@ -20,11 +21,20 @@ def create_terrain(rng:np.random.Generator)->np.ndarray:
             terrain[y,x]=elevation
     return gaussian_filter(terrain,4,mode="wrap")
 
-def save_terrain(terrain:np.ndarray,filename_prefix:str):
+def save_terrain(terrain:np.ndarray,
+                 filename_prefix:str):
     size=4096
     center=1024
-    wm=(2**16-1)*(terrain-terrain.min())/(terrain.max()-terrain.min())
-    wm=wm.astype(np.uint16)
+    min_grey:float=2**16/8
+    zero_grey:float=2**16/4
+    max_grey:float=3*2**16/4
+    tmax,tmin=terrain.max(),terrain.min()
+    def f(x):
+        if x<=0:
+            return ((tmin-x)/tmin)*(zero_grey-min_grey)+min_grey
+        return x/tmax*(max_grey-zero_grey)+zero_grey
+    f=np.vectorize(f)
+    wm=np.round(f(terrain)).astype(np.uint16)
     wm=cv2.resize(wm,(size,size),interpolation=cv2.INTER_CUBIC)
     cv2.imwrite(f"{filename_prefix}_wm.png",wm)
     hm=wm[(size//2-center//2):(size//2+center//2),
