@@ -27,8 +27,8 @@ def save_terrain(terrain:np.ndarray,filename_prefix:str):
     wm=wm.astype(np.uint16)
     wm=cv2.resize(wm,(size,size),interpolation=cv2.INTER_CUBIC)
     cv2.imwrite(f"{filename_prefix}_wm.png",wm)
-    offset=center//2
-    hm=wm[(size-offset):(size+offset),(size-offset):(size+offset)]
+    hm=wm[(size//2-center//2):(size//2+center//2),
+       (size//2-center//2):(size//2+center//2)]
     hm=cv2.resize(hm,(size,size),interpolation=cv2.INTER_CUBIC)
     cv2.imwrite(f"{filename_prefix}_hm.png",hm)
 
