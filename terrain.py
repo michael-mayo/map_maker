@@ -19,7 +19,8 @@ def create_terrain(rng:np.random.Generator)->np.ndarray:
             ny2=ny+0.8*wy
             elevation=pnoise2(nx2*2,ny2*2,octaves=6,base=bases[2])
             terrain[y,x]=elevation
-    return gaussian_filter(terrain,4,mode="wrap")
+    #terrain=gaussian_filter(terrain,4,mode="wrap")
+    return terrain
 
 def save_terrain(terrain:np.ndarray,
                  filename_prefix:str):
