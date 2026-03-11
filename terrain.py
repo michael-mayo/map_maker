@@ -13,8 +13,8 @@ def create_terrain(rng:np.random.Generator)->np.ndarray:
         for x in range(size):
             nx=x/size
             ny=y/size
-            wx=pnoise2(nx*3,ny*3,octaves=3,base=bases[0])
-            wy=pnoise2(nx*3+5,ny*3+5,octaves=3,base=bases[1])
+            wx=pnoise2(nx*3,ny*3,octaves=6,base=bases[0])
+            wy=pnoise2(nx*3+5,ny*3+5,octaves=6,base=bases[1])
             nx2=nx+0.8*wx
             ny2=ny+0.8*wy
             elevation=pnoise2(nx2*8,ny2*8,octaves=6,base=bases[2])
