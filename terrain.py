@@ -27,8 +27,8 @@ def save_terrain(terrain:np.ndarray,
     size:int=4096
     center:int=1024
     min_grey:float=2**16/8
-    zero_grey:float=3**16/4
-    max_grey:float=7*2**16/8
+    zero_grey:float=2**16/4
+    max_grey:float=7*(2**16/8)
     tmax,tmin=terrain.max(),terrain.min()
     def f(t):
         if t<=0:
