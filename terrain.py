@@ -17,25 +17,28 @@ def create_terrain(rng:np.random.Generator)->np.ndarray:
             wy=pnoise2(nx*3+5,ny*3+5,octaves=6,base=bases[1])
             nx2=nx+0.1*wx
             ny2=ny+0.1*wy
-            #elevation=pnoise2(nx2*8,ny2*8,octaves=6,base=bases[2])
             elevation=pnoise2(nx2*3,ny2*3,octaves=6,base=bases[2])
-            #elevation=pnoise2(nx,ny,octaves=6,base=bases[2])
             terrain[y,x]=elevation
     #terrain=gaussian_filter(terrain,4,mode="wrap")
     return terrain
 
 def save_terrain(terrain:np.ndarray,
                  filename_prefix:str):
-    size=4096
-    center=1024
+    size:int=4096
+    center:int=1024
     min_grey:float=2**16/8
-    zero_grey:float=2**16/4
-    max_grey:float=3*2**16/4
+    zero_grey:float=3**16/4
+    max_grey:float=7*2**16/8
     tmax,tmin=terrain.max(),terrain.min()
-    def f(x):
+    def f(t):
+        if t<=0:
+            x=-t/tmin
+        else:
+            x=t/tmax
+        x=x**3
         if x<=0:
-            return ((tmin-x)/tmin)*(zero_grey-min_grey)+min_grey
-        return x/tmax*(max_grey-zero_grey)+zero_grey
+            return (x+1)*(zero_grey-min_grey)+min_grey
+        return x*(max_grey-zero_grey)+zero_grey
     f=np.vectorize(f)
     wm=np.round(f(terrain)).astype(np.uint16)
     wm=cv2.resize(wm,(size,size),interpolation=cv2.INTER_CUBIC)
