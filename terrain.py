@@ -1,30 +1,37 @@
+"""
+
+pip3 install git+https://github.com/pvigier/perlin-numpy
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
-from noise import snoise2
+from perlin_numpy import (
+    generate_fractal_noise_2d, generate_fractal_noise_3d,
+    generate_perlin_noise_2d, generate_perlin_noise_3d
+)
 from scipy.ndimage import gaussian_filter
 import cv2
 from typing import List,Tuple
 
-def create_terrain(rng:np.random.Generator)->np.ndarray:
-    bases=list(map(int,rng.integers(2**16-1,size=4,dtype=np.uint16)))
-    size = 1024
-    terrain = np.zeros((size, size), dtype=np.float32)
-    warp_freq = 1.2
-    warp_amp = 0.008
-    large_freq = 0.7
-    detail_freq = 4.5
-    for y in range(size):
-        ny = (y + 0.5) / size
-        for x in range(size):
-            nx = (x + 0.5) / size
-            wx = snoise2(nx * warp_freq + 17.3, ny * warp_freq - 8.1, octaves=2,base=bases[0])
-            wy = snoise2(nx * warp_freq - 23.7, ny * warp_freq + 11.4, octaves=2,base=bases[1])
-            nx2 = nx + warp_amp * wx
-            ny2 = ny + warp_amp * wy
-            large = snoise2(nx2 * large_freq + 31.1, ny2 * large_freq - 12.8, octaves=2,base=bases[2])
-            small = snoise2(nx2 * detail_freq - 7.4, ny2 * detail_freq + 22.6, octaves=4,base=bases[3])
-            terrain[y, x] = large + 0.2 * small
-    return terrain
+def create_terrain()->np.ndarray:
+    large = generate_fractal_noise_2d(
+        (512, 512),
+        (2, 2),
+        octaves=2,
+        persistence=0.5,
+        lacunarity=2
+    )
+
+    small = generate_fractal_noise_2d(
+        (512, 512),
+        (8, 8),
+        octaves=3,
+        persistence=0.5,
+        lacunarity=2
+    )
+
+    terrain = large + 0.15 * small
+    return terrain[:256,:256]
 
 def save_terrain(terrain:np.ndarray,
                  filename_prefix:str):
@@ -53,13 +60,11 @@ def save_terrain(terrain:np.ndarray,
     cv2.imwrite(f"{filename_prefix}_hm.png",hm)
 
 if __name__=="__main__":
-    rng=np.random.default_rng(42)
-    seeds=rng.integers(2**16,size=10,dtype=np.uint16)
-    for seed in seeds:
-        print("creating",seed,"...")
-        terrain=create_terrain(rng)
-        save_terrain(terrain,f"example_maps/{seed}")
+    for it in range(10):
+        print("creating",it,"...")
+        terrain=create_terrain()
+        save_terrain(terrain,f"example_maps/{it}")
         plt.figure(figsize=(8,8))
         plt.imshow(terrain,cmap="terrain")
         plt.colorbar()
-        plt.savefig(f"example_maps/{seed}.png",dpi=300)
+        plt.savefig(f"example_maps/{it}.png",dpi=300)
