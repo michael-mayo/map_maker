@@ -6,27 +6,26 @@ from scipy.ndimage import gaussian_filter
 SIZE=1024
 """ Grid size of the map """
 
-SEQS=[(50,0.5),(100,0.25),(200,0.125),(400,0.065),(800,0.0325)]
-""" Sequences of #vornoi seeds,scale pairs  """
+N_SEEDS=100
+""" Number of vornoi seeds """
 
 RNG_SEED=42
 RNG=np.random.default_rng(RNG_SEED)
 """ Random number generator"""
 
-JITTER=0.003
-""" Amount of seed jitter when constructing voronoi map"""
+K=10
+""" Number of nearest voronoi seeds to consider """
 
 def sample_voronoi_seeds(n_seeds:int):
     """ Generate seeds; x,y positions and z heights follow different distributions """
     seeds=np.zeros((n_seeds,3))
     seeds[:,0]=RNG.random(n_seeds)
     seeds[:,1]=RNG.random(n_seeds)
-    seeds[:,2]=RNG.gumbel(0.2,0.1,n_seeds)
-    seeds[:,2]=np.clip(seeds[:,2],a_min=0,a_max=1)
+    seeds[:,2]=RNG.random(n_seeds)
     return seeds
 
 def create_voronoi_map(seeds:np.ndarray):
-    """ Create a jittered voronoi map """
+    """ Create a voronoi map """
     map=np.empty((SIZE,SIZE),dtype=np.float32)
     tree = cKDTree(seeds[:, :2])
     for i in range(SIZE):
@@ -34,12 +33,11 @@ def create_voronoi_map(seeds:np.ndarray):
             np.array([(i+0.5)/SIZE]*SIZE),
             np.linspace(0.05,(SIZE+0.05)/(SIZE+1),num=SIZE)
         ],axis=1)
-        dist,ind=tree.query(xy,k=1)
-        map[:,i]=seeds[ind,2]
-        if JITTER>0 and i<SIZE-1:
-            seeds[:,:2]+=JITTER*(RNG.random(seeds[:,:2].shape)-0.5)
-            seeds[:,:2]=np.clip(seeds[:,:2],a_min=0.0,a_max=1.0)
-            tree=cKDTree(seeds[:,:2])
+        dist,ind=tree.query(xy,k=K)
+        heights=(np.vectorize(
+            lambda seed_ind:seeds[seed_ind,2])
+            (ind))
+        map[:,i]=heights.mean(axis=1)
     return map
 
 
@@ -54,10 +52,8 @@ def save_map(map:np.ndarray):
     cv2.imwrite(f"hm_{RNG_SEED}.png", hm)
 
 if __name__=="__main__":
-    map=np.zeros((SIZE,SIZE),dtype=np.float32)
-    for num_voronoi_seeds,scale in SEQS:
-        voronoi_seeds=sample_voronoi_seeds(num_voronoi_seeds)
-        map+=scale*create_voronoi_map(voronoi_seeds)
-    map=gaussian_filter(map,10)
+    voronoi_seeds=sample_voronoi_seeds(N_SEEDS)
+    map=create_voronoi_map(voronoi_seeds)
+    map=gaussian_filter(map,7)
     map=(map-map.min())/(map.max()-map.min())
     save_map(map)
