@@ -74,6 +74,11 @@ def create_map(
     RNG=np.random.default_rng(seed)
     result=domain_warped_pink_noise(shape)
     result=gaussian_filter(result,smoothing_sigma)
+    
+    # TODO: shift the height of the starting square down to 0.3
+    # TODO: flatten the starting square; height map is divided into 23x23 squares
+    # TODO: and the central 3x3 are the game start squares
+
     return result
 
 
