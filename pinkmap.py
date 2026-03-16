@@ -46,7 +46,7 @@ def bilinear_sample(img:np.ndarray,
     )
 
 def domain_warped_pink_noise(shape:Tuple[int,int]=(256, 256),
-                             base_beta:float=1.0,
+                             base_beta:float=4.0,
                              warp_beta:float=1.0,
                              warp_strength:float=60.0):
     """ Generate domain warped pink noise """
@@ -68,7 +68,7 @@ def domain_warped_pink_noise(shape:Tuple[int,int]=(256, 256),
 def create_map(
         seed:int,
         shape:Tuple[int,int]=(256,256),
-        smoothing_sigma:float=7)->np.ndarray:
+        smoothing_sigma:float=4)->np.ndarray:
     """ Create a map """
     global RNG
     RNG=np.random.default_rng(seed)
@@ -92,4 +92,4 @@ if __name__=="__main__":
     for seed in [42,22,111]:
         save_map(
             f"{seed}.png",
-            create_map(seed,shape=(512,512),smoothing_sigma=11))
+            create_map(seed,shape=(512,512)))
