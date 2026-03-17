@@ -83,13 +83,16 @@ def value_map(map:np.ndarray):
     min,max=map.min(),map.max()
     ch,cw=h//2,w//2
     center_grey=(map[ch,cw]-min)/(max-min)
+    if center_grey>0.3 or center_grey<0.1:
+        return 10
     fs=8
     g1=map[ch-fs,cw]-map[ch+fs,cw]
     g2=map[ch,cw-fs]-map[ch,cw+fs]
     g3=map[ch-fs,cw]-map[ch,cw+fs]
     g4=map[ch,cw-fs]-map[ch+fs,cw]
     center_gradient=np.sqrt(g1**2+g2**2+g3**3+g4**2)
-    return abs(center_grey-0.3)+5*center_gradient
+
+    return center_gradient
 
 
 
@@ -105,13 +108,14 @@ def save_map(filename_suffix:str,terrain:np.ndarray):
     cv2.imwrite(f"example_maps/hm_{filename_suffix}.png", hm)
 
 def main():
-    for seed in [42,22,111]:
+    seeds=[42,22,111,10000,100001,228722,272727,222,1733621,6686,26262,26262]
+    for i,seed in enumerate(seeds):
         rng=np.random.default_rng(seed)
         best_map=None
-        for _ in range(10):
+        for _ in range(100):
             map=create_map(rng,shape=(512,512))
             map_value=value_map(map)
-            print(seed,map_value)
+            print(i,map_value)
             if best_map is None or map_value<best_value:
                 best_map=map
                 best_value=map_value
