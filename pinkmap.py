@@ -70,29 +70,27 @@ def create_map(
         rng:np.random.Generator,
         shape:Tuple[int,int]=(256,256),
         smoothing_sigma:float=4)->np.ndarray:
-    """ Create a map """
+    """ Create a map; heights will range from 0..1 after rescaling """
     result=domain_warped_pink_noise(rng,shape)
     result=gaussian_filter(result,smoothing_sigma)
-    return result
+    min,max=result.min(),result.max()
+    return ((result-min)/(max-min))**2
 
 #@functools.lru_cache()
 def value_map(map:np.ndarray):
     """ Value function for maps. Tries to position the starting square at a height
-        of approx 30% above the lowest height if possible """
+        of approx 0.3 above the lowest height if possible """
     h,w=map.shape
-    min,max=map.min(),map.max()
     ch,cw=h//2,w//2
-    center_grey=(map[ch,cw]-min)/(max-min)
-    if center_grey>0.3 or center_grey<0.1:
-        return 10
-    fs=8
-    g1=map[ch-fs,cw]-map[ch+fs,cw]
-    g2=map[ch,cw-fs]-map[ch,cw+fs]
-    g3=map[ch-fs,cw]-map[ch,cw+fs]
-    g4=map[ch,cw-fs]-map[ch+fs,cw]
-    center_gradient=np.sqrt(g1**2+g2**2+g3**3+g4**2)
-
-    return center_gradient
+    if map[ch,cw]<0.1 or map[ch,cw]>0.3:
+        return 1
+    g0=map[ch-8,cw]-map[ch+8,cw]
+    g1=map[ch,cw-8]-map[ch,cw+8]
+    g2=map[ch-8,cw]-map[ch,cw+8]
+    g3=map[ch,cw-8]-map[ch+8,cw]
+    gr=(g0**2+g1**2+g2**2+g3**2)/4
+    return gr
+    #return (map[ch,cw]-0.3)**2
 
 
 
@@ -112,7 +110,7 @@ def main():
     for i,seed in enumerate(seeds):
         rng=np.random.default_rng(seed)
         best_map=None
-        for _ in range(100):
+        for _ in range(1000):
             map=create_map(rng,shape=(512,512))
             map_value=value_map(map)
             print(i,map_value)
@@ -120,7 +118,7 @@ def main():
                 best_map=map
                 best_value=map_value
                 print("best map updated")
-        save_map(f"{seed}.png",best_map)
+        save_map(f"{i}.png",best_map)
 
 if __name__=="__main__":
     main()
